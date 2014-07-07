@@ -1,56 +1,59 @@
 $currentDir = Split-Path -parent $MyInvocation.MyCommand.Path;
-$userModuleDir = "$([System.Environment]::GetFolderPath("MyDocuments"))\WindowsPowerShell\Modules\PhatGit";
+$moduleName = "PhatGit";
+$userModuleDir = "$([System.Environment]::GetFolderPath("MyDocuments"))\WindowsPowerShell\Modules\$moduleName";
 $iseProfileFile = "$([System.Environment]::GetFolderPath("MyDocuments"))\WindowsPowerShell\Microsoft.PowerShellISE_profile.ps1";
 
-$copyToModules = Read-Host 'Install PhatGit to your Modules directory [y/n]?';
+$copyToModules = Read-Host "Install $moduleName to your Modules directory [y/n]?";
 if ($copyToModules -ieq 'y') {
 	if (Test-Path $userModuleDir) {
 		Write-Host "Removing directory '$userModuleDir'..." -NoNewline;
 		Remove-Item -Path $userModuleDir -Force	-Recurse;
-        Write-Host "OK";
+        Write-Host " OK";
 	}
 	
-	Write-Host "Unblocking PhatGit files..." -NoNewLine;
-	Get-ChildItem (Join-Path $currentDir "PhatGit") | Unblock-File;
-	Write-Host "OK";
+	Write-Host "Unblocking $moduleName files..." -NoNewLine;
+	Get-ChildItem $currentDir | Unblock-File;
+	Write-Host " OK";
 
-	Write-Host "Copying PhatGit files to '$userModuleDir'..." -NoNewline;
-	Copy-Item -Path (Join-Path $currentDir "PhatGit") -Destination $userModuleDir -Recurse -Force;
-    Write-Host "OK";
+	Write-Host "Copying $moduleName files to '$userModuleDir'..." -NoNewline;
+    New-Item -Path $userModuleDir -ItemType Container -Force | Out-Null;
+	Copy-Item -Path "$currentDir\*.ps?1" -Destination $userModuleDir -Force;
+    Copy-Item -Path "$currentDir\LICENSE" -Destination $userModuleDir -Force;
+    Copy-Item -Path "$currentDir\README.md" -Destination $userModuleDir -Force;
+    Write-Host " OK";
 }
 
 Write-Host "";
 
-$installToProfile = Read-Host 'Install PhatGit to ISE Profile (will start when ISE starts) [y/n]?';
+$installToProfile = Read-Host "Install $moduleName to ISE Profile (will start when ISE starts) [y/n]?";
 
 if ($installToProfile -ieq 'y') {
 	if (!(Test-Path $iseProfileFile)) {
 		Write-Host "Creating file '$iseProfileFile'..." -NoNewline;
 		New-Item -Path $iseProfileFile -ItemType file | Out-Null;
-        Write-Host "OK";
+        Write-Host " OK";
 		$contents = "";
 	} else {
 		Write-Host "Reading file '$iseProfileFile'..." -NoNewLine;
-		$contents = Get-Content -Path $iseProfileFile | Out-String;
-        Write-Host "OK";
+		$contents = Get-Content -Path $iseProfileFile | Select-String -Pattern $moduleName;
+        Write-Host " OK";
 	}
 
-	$importModule = "Import-Module PhatGit";
+	$importModule = "Import-Module $moduleName";
 
-	if ($contents -inotmatch $importModule) {
+	if ($contents -inotmatch $moduleName) {
 		Write-Host "Adding '$importModule'..." -NoNewLine;
 		Add-Content -Path $iseProfileFile -Value $importModule | Out-Null;
-        Write-Host "OK";
+        Write-Host " OK";
 	} else {
-		Write-Host "Import command for PhatGit already exists in Powershell ISE profile.";
+		Write-Host "Import command for $moduleName already exists in Powershell ISE profile.";
 	}
 }
-
 # SIG # Begin signature block
 # MIIaogYJKoZIhvcNAQcCoIIakzCCGo8CAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU4SFqeaNIneJll+qInIpDk5um
-# qBigghXYMIID7jCCA1egAwIBAgIQfpPr+3zGTlnqS5p31Ab8OzANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUuo7nq93uFzEYQmQsVPvN3gvI
+# 21qgghXYMIID7jCCA1egAwIBAgIQfpPr+3zGTlnqS5p31Ab8OzANBgkqhkiG9w0B
 # AQUFADCBizELMAkGA1UEBhMCWkExFTATBgNVBAgTDFdlc3Rlcm4gQ2FwZTEUMBIG
 # A1UEBxMLRHVyYmFudmlsbGUxDzANBgNVBAoTBlRoYXd0ZTEdMBsGA1UECxMUVGhh
 # d3RlIENlcnRpZmljYXRpb24xHzAdBgNVBAMTFlRoYXd0ZSBUaW1lc3RhbXBpbmcg
@@ -172,22 +175,22 @@ if ($installToProfile -ieq 'y') {
 # IFNpZ25pbmcgQ0EtMQIQBvAV2BVGI+l5s0YBGmSUlTAJBgUrDgMCGgUAoHgwGAYK
 # KwYBBAGCNwIBDDEKMAigAoAAoQKAADAZBgkqhkiG9w0BCQMxDAYKKwYBBAGCNwIB
 # BDAcBgorBgEEAYI3AgELMQ4wDAYKKwYBBAGCNwIBFTAjBgkqhkiG9w0BCQQxFgQU
-# HJmvEgMyDazeT1AgzjfT2P8iBkkwDQYJKoZIhvcNAQEBBQAEggEAve04nucLUCQP
-# XY8NHrQqOSl2aokTgvqKXSKINCJbF/AGgxaoGBWYNnZuLUAstBRVuCx02ZMVsslo
-# jB4XJEks9iA5LOdASlYQGhJw4oHcxhXrumyKuShqZwmogcIJphq8MBpjzzfQequZ
-# JWKdm3S5tRHAAW68BwAtZo2cmR5ZUGo6ocKfE+AsVsgRA/BNSORVZnQ25en1dJyX
-# dBO+1VT53XhVqMwBnbAhhe2Ypgze8C5sC2z5wsktchggXD43yoK2M0rC7wjWBnP8
-# hBEZ5LtJvCF/APE24PJqYjSEF5s2mwI1YmINgcBvPRUCcZ7rr/bxgEqQWGmprH3T
-# clQt3nU2ZKGCAgswggIHBgkqhkiG9w0BCQYxggH4MIIB9AIBATByMF4xCzAJBgNV
+# /1kLv8KZzLgNgQfVKv+aXC6xMmIwDQYJKoZIhvcNAQEBBQAEggEATQRiSs/3a1UJ
+# 0dTM1ZVbICnIeKaBbxa2bFMOMbPIAVGiYM7ygbZ/RHm6aJiiNkx/kfof58goag0B
+# HE3vx+jlHwGazl8rCtSLEDGG17eNVD0PCCZ8n84LfOJr2H9/X1TrXaZjX1RhEFh1
+# sz4PgNH+GZc+3gO/uE+SFr+fELSih+Ro4qJHFkaSvviMAJ/3LzriQEDP4CeLjjIy
+# c/2iD2zQlLKxoC4uROdvE9JxcoahM4Q4DpAkCyV0CfiPHBH5p2f7t74lqSeiQF1y
+# TTq1sPob/izlGm27/RawewvB6TvLzAvfPjsqHtR9msEr9Txn+niRW+W/NJ13Hviz
+# PDtS63GqM6GCAgswggIHBgkqhkiG9w0BCQYxggH4MIIB9AIBATByMF4xCzAJBgNV
 # BAYTAlVTMR0wGwYDVQQKExRTeW1hbnRlYyBDb3Jwb3JhdGlvbjEwMC4GA1UEAxMn
 # U3ltYW50ZWMgVGltZSBTdGFtcGluZyBTZXJ2aWNlcyBDQSAtIEcyAhAOz/Q4yP6/
 # NW4E2GqYGxpQMAkGBSsOAwIaBQCgXTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcB
-# MBwGCSqGSIb3DQEJBTEPFw0xNDA3MDcxNzA3NDFaMCMGCSqGSIb3DQEJBDEWBBS8
-# fK902x/C60FERLVZ0udyky+o3jANBgkqhkiG9w0BAQEFAASCAQALC1tgspXUbeLA
-# kfT06Ty9qiP/bIZmF6TmnCp3XUmuNhF9bluLl10NcoLthktv/luFK6xoK7V3J8Bo
-# ZOyaMbwEqZ7+ukx0KtGvtDU8gNqCxgMshzfv3gt5r8YE6C77qnbqQB13hG5ZVigd
-# xbUq0sUS8vb1+2j2q/WmnuVpEGfPaWljnVZZrBWd2s7DfPbxKGENi9VzFVKazgL0
-# Vxb2zODxVkicY/LoFmw8voFVgSNnff53uBCZTaWSUTSiVhGef4oYCguVzpszTmzk
-# A5+lxezHYEn/6EmbBPv4d4X0XdZAun6bAmyO5n9Kcg9vXagWyuqCia7cnvcv83iR
-# 0ws6pg7R
+# MBwGCSqGSIb3DQEJBTEPFw0xNDA3MDcxODI2MzhaMCMGCSqGSIb3DQEJBDEWBBTI
+# 37UFwZEch15+ZxGiINvL4q3AYzANBgkqhkiG9w0BAQEFAASCAQAG7d/2uGuUVyYK
+# 0LTEyUW4/84DOcy5f9phfrId2zSJWgeJCsJStz4b2vyO/8E4FHT79rpoKJFJPF+v
+# G+aFuzDinaiYMBkXAm5GqU8BPZL8xucpox8YBpz4gaufcdQ26FP+GM+wy5wEpbgS
+# hg2rL/so1BF1VK5QW2mICK9np1plJkN54gMqCI4J6/4MrwiNy7x9D7+NeOeBdDF3
+# p9VGfen6tIIGNvBvULbkCZMAZ8xI24Hwf8YcglbHRzML1v1bYRqsdgiAVv1/KUNb
+# FdjUi5RfX8UoACXWmhpiV0Gjv9FW0DGpsZcDc0MpTZe+UWM0R1dsdzljZ1OwKjyt
+# 6C6OAxf/
 # SIG # End signature block
