@@ -11,15 +11,13 @@
    Therefore, existing tooling such as poshgit, will continue to function
    as expected.
 #>
-function Invoke-PhatGit
-{
+function Invoke-PhatGit {
     [CmdletBinding()]
-    [Alias("Git")]
-    Param (
-        [Parameter(ValueFromRemainingArguments=$true)] $parameters
+    param (
+        [Parameter(ValueFromRemainingArguments = $true)] $parameters
     )
 
-    Process {
+    process {
 
         if (-not([string]::IsNullOrEmpty($MyInvocation.PSCommandPath)) -or
                 -not($Host.Name.Contains('ISE'))) {
@@ -35,6 +33,7 @@ function Invoke-PhatGit
 
             ## Re-quote any parameters with spaces, e.g. git commit -m "commit message"
             for ($i = 0; $i -lt $parameters.Count; $i++) {
+                ##TODO: Errors when running 'git log -n 2' instead of 'git log -n2'
                 if (-not([string]::IsNullOrEmpty($parameters[$i])) -and $parameters[$i].Contains(' ')) {
                     $parameters[$i] = "`"$($parameters[$i])`""; }
             }
@@ -60,20 +59,19 @@ function Invoke-PhatGit
                 Stop-Process -Id $process.Id -Force;
             }
             else {
-
                 ## Echo the redirected output streams.
                 foreach ($standardOutput in $process.StandardOutput.ReadToEnd()) {
-                    if (-not([string]::IsNullOrEmpty($standardOutput))) { Write-Host $standardOutput -NoNewline; }
+                    if (-not([string]::IsNullOrEmpty($standardOutput))) { Write-Output $standardOutput.Trim(); }
                 }
-
                 foreach ($errorOutput in $process.StandardError.ReadToEnd()) {
                     $errorForegroundColor = $Host.PrivateData.ErrorForegroundColor | ConvertToConsoleColor;
                     if (-not([string]::IsNullOrEmpty($errorOutput))) { Write-Host $errorOutput -ForegroundColor $errorForegroundColor -NoNewline; }
                 }
             }
-        }
-    }
-}
+
+        } # end else
+    } # end process
+} # end function Invoke-PhatGit
 
 <#
 .SYNOPSIS
@@ -89,27 +87,27 @@ function Invoke-PhatGit
 function ConvertToConsoleColor {
     [CmdletBinding(DefaultParameterSetName='RGB')]
     [OutputType([System.String])]
-    Param (
-        [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true, Position=0, ParameterSetName='RGB')]
-        [ValidateNotNullOrEmpty()] [int] $R,
-        [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true, Position=0, ParameterSetName='RGB')]
-        [ValidateNotNullOrEmpty()] [int] $G,
-        [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true, Position=0, ParameterSetName='RGB')]
-        [ValidateNotNullOrEmpty()] [int] $B,
+    param (
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 0, ParameterSetName = 'RGB')]
+        [ValidateNotNullOrEmpty()] [System.Int32] $R,
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 0, ParameterSetName = 'RGB')]
+        [ValidateNotNullOrEmpty()] [System.Int32] $G,
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 0, ParameterSetName = 'RGB')]
+        [ValidateNotNullOrEmpty()] [System.Int32] $B,
 
-        [Parameter(Mandatory=$true, ValueFromPipeline=$true, ParameterSetName='Color')]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = 'Color')]
         [ValidateNotNull()] [System.Windows.Media.Color] $InputObject,
 
-        [Parameter(ValueFromPipelineByPropertyName=$true)]
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
         [ValidateSet('Black','DarkBlue','DarkGreen','DarkCyan','DarkRed','DarkMagenta','DarkYellow','Gray','DarkGray','Blue','Green','Cyan','Red','Magenta','Yellow','White')]
-        [string] $DefaultColor = 'Red'
+        [System.String] $DefaultColor = 'Red'
     )
 
-    Begin {
+    begin {
         Write-Debug ("Using parameter set '$($PSCmdlet.ParameterSetName)'.");
     }
 
-    Process {
+    process {
 
         foreach ($consoleColor in [enum]::GetValues([System.ConsoleColor])) {
             $color = [System.Drawing.Color]::$consoleColor;
@@ -126,7 +124,6 @@ function ConvertToConsoleColor {
             if (($color.R -eq $R) -and
                     ($color.G -eq $G) -and
                         ($color.B -eq $B)) {
-
                 return $color.Name;
             }
 
@@ -136,11 +133,13 @@ function ConvertToConsoleColor {
         if (($color.R -eq 128) -and
                 ($color.G -eq 128) -and
                     ($color.B -eq 0)) {
-
             return "DarkYellow";
         }
 
         ## If we've got here we don't have a match so return the default.
         return $DefaultColor;
-    }
-}
+    } # end process
+} # end function ConvertToConsoleColor
+
+New-Alias -Name Git -Value Invoke-PhatGit;
+Export-ModuleMember -Function Invoke-PhatGit -Alias Git;
