@@ -1,5 +1,5 @@
 ## PhatGit
-A PowerShell module that wraps Git functionality so that it plays nicely with the PowerShell ISE.
+A PowerShell module that wraps Git functionality so that it plays nicely within the PowerShell ISE.
 
 * Aliases Git in the PowerShell ISE with a new Invoke-PhatGit cmdlet.
 * Captures and redirects interactive git.exe commands' standard and error output streams.
@@ -22,12 +22,17 @@ PhatGit interactive process timeout warning:
 
 ##### Installation
 
-* Automatic:
- * Run 'Install_to_User_Modules.ps1'.
+* Automatic (with Chocolatey):
+ * Run 'choco install phatgit'.
+ * Launch the PowerShell ISE.
+ * Run 'Import-Module PhatGit'.
+* Automatic (with Windows 10 until I can publish this to the PSGallery feed as a module):
+ * Run 'install-package phatgit -source chocolatey'.
+ * Launch the PowerShell ISE.
+ * Run 'Import-Module PhatGit'.
 * Manual:
- * Ensure all the files are unblocked (properties of the file / General).
- * Create module directory "$env:USERPROFILE\Documents\WindowsPowerShell\Modules\PhatGit".
- * Copy PhatGit.psm1 and PhstGit.psd1 files to $env:USERPROFILE\Documents\WindowsPowerShell\Modules\PhatGit.
+ * Download the latest release from https://github.com/iainbrighton/PhatGit/releases/latest.
+ * Ensure the .zip file is unblocked (properties of the file / General) and extract to your Powershell module directory "$env:USERPROFILE\Documents\WindowsPowerShell\Modules".
  * Launch the PowerShell ISE.
  * Run 'Import-Module PhatGit'.
  * If you want it to be loaded automatically when ISE starts, add the line above to your ISE profile (see $profile).
