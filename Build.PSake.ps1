@@ -66,7 +66,7 @@ Task Deploy {
     [Ref] $null = New-ModuleLicense -Path $licensePath -LicenseType MIT -FullName $company;
     ## Copy release files
     Write-Host (' Copying release files to build directory "{0}".' -f $buildPath) -ForegroundColor Yellow;
-    $excludedFiles = @( '*.Tests.ps1','Build.PSake.ps1','.git*','*.png','Build','Release' );
+    $excludedFiles = @( '*.Tests.ps1','Build.PSake.ps1','.git*','*.png','Build','Release','readme.md' );
     Get-ModuleFile -Exclude $excludedFiles | % {
         $destinationPath = '{0}{1}' -f $buildPath, $PSItem.FullName.Replace($basePath, '');
         [Ref] $null = New-Item -ItemType File -Path $destinationPath -Force;
