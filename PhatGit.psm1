@@ -31,8 +31,8 @@ function Invoke-PhatGit {
             Write-Verbose $localizedData.RedirectingOutputStreams;
             ## Re-quote any parameters with spaces, e.g. git commit -m "commit message"
             for ($i = 0; $i -lt $parameters.Count; $i++) {
-                ##TODO: Errors when running 'git log -n 2' instead of 'git log -n2'
-                if (-not ([string]::IsNullOrEmpty($parameters[$i])) -and $parameters[$i].Contains(' ')) {
+                ## Do not check integers, for example when running 'git log -n 2' instead of 'git log -n2'
+                if (-not [System.String]::IsNullOrEmpty($parameters[$i]) -and $parameters[$i] -is [System.String]) {
                     $parameters[$i] = '"{0}"' -f $parameters[$i];
                 }
             } #end for
