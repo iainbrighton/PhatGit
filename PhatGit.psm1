@@ -1,32 +1,34 @@
-<#
-.Synopsis
-   Runs a Git command and redirects output to the PowerShell host.
-.DESCRIPTION
-   The standard Git.exe command sends output to the error stream which
-   results in fubar'd ouput in the PowerShell ISE. This function runs
-   the specified Git.exe command and rewrites output to the PowerShell
-   host.
+Import-LocalizedData -BindingVariable localizedData -FileName Resources.psd1;
 
-   This cmdlet only actions Git commands that are issued interactively.
-   Therefore, existing tooling such as poshgit, will continue to function
-   as expected.
-#>
 function Invoke-PhatGit {
+    <#
+    .SYNOPSIS
+       Runs a Git command and redirects output to the PowerShell host.
+    .DESCRIPTION
+       The standard Git.exe command sends output to the error stream which
+       results in fubar'd ouput in the PowerShell ISE. This function runs
+       the specified Git.exe command and rewrites the error output stream
+       to the PowerShell host.
+
+       This cmdlet only actions Git commands that are issued interactively.
+       Therefore, existing tooling such as poshgit, will continue to function
+       as expected.
+    #>
     [CmdletBinding()]
     param (
         [Parameter(ValueFromRemainingArguments = $true)] $parameters
     )
     process {
         if (-not ([string]::IsNullOrEmpty($MyInvocation.PSCommandPath)) -or
-                -not ($Host.Name.Contains('ISE'))) {
-                    ## We're not running interactively or not in the ISE so launch native
-                    ## 'git' so that any existing tooling behaves as expected, e.g. posh-git etc.
-                    $commandParameters = $parameters -Join ' ';
-                    Invoke-Expression "Git.exe $commandParameters";
+            -not ($Host.Name.Contains('ISE'))) {
+                ## We're not running interactively or not in the ISE so launch native
+                ## 'git' so that any existing tooling behaves as expected, e.g. posh-git etc.
+                $commandParameters = $parameters -Join ' ';
+                Invoke-Expression -Command ('Git.exe {0}' -f $commandParameters);
         }
         else {
             ## Otherwise, redirect output streams so they can be echoed nicely
-            Write-Verbose "Redirecting output streams.";
+            Write-Verbose $localizedData.RedirectingOutputStreams;
             ## Re-quote any parameters with spaces, e.g. git commit -m "commit message"
             for ($i = 0; $i -lt $parameters.Count; $i++) {
                 ##TODO: Errors when running 'git log -n 2' instead of 'git log -n2'
@@ -43,12 +45,12 @@ function Invoke-PhatGit {
             $processStartInfo.RedirectStandardOutput = $true;
             $processStartInfo.RedirectStandardError = $true;
             $process = [System.Diagnostics.Process]::Start($processStartInfo);
-            Write-Debug ('Started process ''{0}''.' -f $process.Id);
+            Write-Debug ($localizedData.StartedProcess -f $process.Id);
             ## Launch the process and wait for up to 3 seconds
             $exitedCleanly = $process.WaitForExit(3000);
             if (-not($exitedCleanly)) {
-                Write-Warning ('Process ''git {0}'' did not exit cleanly. Probably waiting for user input?' -f ($parameters -join ' '));
-                Write-Warning ('Stopping process ''{0}''.' -f $process.Id);
+                Write-Warning ($localizedData.ProcessNotExitedCleanly -f ($parameters -join ' '));
+                Write-Warning ($localizedData.StoppingProcess -f $process.Id);
                 Stop-Process -Id $process.Id -Force;
             }
             else {
@@ -65,18 +67,18 @@ function Invoke-PhatGit {
     } # end process
 } # end function Invoke-PhatGit
 
-<#
-.SYNOPSIS
-    Converts RGB color to the PowerShell Write-Host equivalent.
-.DESCRIPTION
-    This cmdlet converts the specified RGB color to an equivalent that can be used
-    with the Write-Host cmdlet. As the Write-Host cmdlet only supports a finite
-    number of colors. If no match is found, a default color string of 'Red' is returned.
-.NOTES
-    This is an internal function not intended to be called from outside this
-    module.
-#>
 function ConvertToConsoleColor {
+    <#
+    .SYNOPSIS
+        Converts RGB color to the PowerShell Write-Host equivalent.
+    .DESCRIPTION
+        This cmdlet converts the specified RGB color to an equivalent that can be used
+        with the Write-Host cmdlet. As the Write-Host cmdlet only supports a finite
+        number of colors. If no match is found, a default color string of 'Red' is returned.
+    .NOTES
+        This is an internal function not intended to be called from outside this
+        module.
+    #>
     [CmdletBinding(DefaultParameterSetName='RGB')]
     [OutputType([System.String])]
     param (
@@ -86,16 +88,14 @@ function ConvertToConsoleColor {
         [ValidateNotNullOrEmpty()] [System.Int32] $G,
         [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 0, ParameterSetName = 'RGB')]
         [ValidateNotNullOrEmpty()] [System.Int32] $B,
-
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = 'Color')]
         [ValidateNotNull()] [System.Windows.Media.Color] $InputObject,
-
         [Parameter(ValueFromPipelineByPropertyName = $true)]
         [ValidateSet('Black','DarkBlue','DarkGreen','DarkCyan','DarkRed','DarkMagenta','DarkYellow','Gray','DarkGray','Blue','Green','Cyan','Red','Magenta','Yellow','White')]
         [System.String] $DefaultColor = 'Red'
     )
     begin {
-        Write-Debug ('Using parameter set ''{0}''.' -f $PSCmdlet.ParameterSetName);
+        Write-Debug ($localizedData.UsingParameterSet -f $PSCmdlet.ParameterSetName);
     }
     process {
         foreach ($consoleColor in [enum]::GetValues([System.ConsoleColor])) {
