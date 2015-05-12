@@ -34,7 +34,6 @@ Task Setup {
     # Properties are not available in the script scope.
     Set-Variable manifest -Value (Get-ModuleManifest) -Scope Script;
     Set-Variable buildPath -Value (Join-Path -Path $psake.build_script_dir -ChildPath "$buildDir\$($manifest.Name)") -Scope Script;
-    Set-Variable chocolateyBuildPath -Value (Join-Path -Path $psake.build_script_dir -ChildPath "$buildDir\Chocolatey") -Scope Script;
     Set-Variable releasePath -Value (Join-Path -Path $psake.build_script_dir -ChildPath $releaseDir) -Scope Script;
     Set-Variable version -Value (Get-GitVersionString) -Scope Script;
 
@@ -119,6 +118,7 @@ Task Release {
 }
 
 Task Chocolatey {
+    Set-Variable chocolateyBuildPath -Value (Join-Path -Path $psake.build_script_dir -ChildPath "$buildDir\Chocolatey") -Scope Script;
     ## Create the Chocolatey folder
     Write-Host (' Creating Chocolatey directory "{0}".' -f $chocolateyBuildPath) -ForegroundColor Yellow;
     [Ref] $null = New-Item $chocolateyBuildPath -ItemType Directory -Force -ErrorAction Stop;
