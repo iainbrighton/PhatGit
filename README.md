@@ -26,12 +26,12 @@ PhatGit interactive process timeout warning:
  * Run 'choco install phatgit'.
  * Launch the PowerShell ISE.
  * Run 'Import-Module PhatGit'.
-* Automatic (with Windows 10 until I can publish this to the PSGallery feed as a module):
- * Run 'install-package phatgit -source chocolatey'.
+* Automatic (via OneGet on Windows 10 - until I can publish this to the PSGallery feed):
+ * Run 'Install-Package phatgit -Source chocolatey'.
  * Launch the PowerShell ISE.
  * Run 'Import-Module PhatGit'.
 * Manual:
- * Download the latest release from https://github.com/iainbrighton/PhatGit/releases/latest.
+ * Download the [latest release](https://github.com/iainbrighton/PhatGit/releases/latest).
  * Ensure the .zip file is unblocked (properties of the file / General) and extract to your Powershell module directory "$env:USERPROFILE\Documents\WindowsPowerShell\Modules".
  * Launch the PowerShell ISE.
  * Run 'Import-Module PhatGit'.
