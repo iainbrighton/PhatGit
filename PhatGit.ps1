@@ -1,5 +1,20 @@
 Import-LocalizedData -BindingVariable localizedData -FileName Resources.psd1;
 
+## Set default global known commands. These can be overridden in a user's profile as required.
+## NOTE: It's important to specify matching command parameters BEFORE missing parameters!
+$knownGitCommands = @(
+    @{ Command = 'commit'; Parameter = '--interactive'; Exists = $true; MessageId = 'InteractiveCommitMessageWarning'; }
+    @{ Command = 'commit'; Parameter = '-m'; Exists = $false; MessageId = 'MissingCommitMessageWarning'; }
+)
+$ignoredGitCommands = @(
+    @{ Command = 'push'; }
+    @{ Command = 'pull'; }
+    @{ Command = 'clone'; }
+)
+## Set the variables in the parent scope.
+Set-Variable -Name PhatGitKnownCommands -Value $knownGitCommands -Scope 1 -Visibility Public;
+Set-Variable -Name PhatGitIgnoredCommands -Value $ignoredGitCommands -Scope 1 -Visibility Public;
+
 function Invoke-PhatGit {
     <#
     .SYNOPSIS
@@ -29,9 +44,9 @@ function Invoke-PhatGit {
             ## 'git' so that any existing tooling behaves as expected, e.g. posh-git etc.
             return Invoke-Expression -Command ('Git.exe {0}' -f $originalCommandParameterString);
         }
-        elseif (TestPhatGitCommand -PhatGitCommands $global:PhatGitKnownCommands -Parameters $parameters) {
+        elseif (TestPhatGitCommand -PhatGitCommands $PhatGitKnownCommands -Parameters $parameters) {
             ## We have a known problematic command.
-            $gitKnownCommand = GetPhatGitCommand -PhatGitCommands $global:PhatGitKnownCommands -Parameters $parameters;
+            $gitKnownCommand = GetPhatGitCommand -PhatGitCommands $PhatGitKnownCommands -Parameters $parameters;
             if ($gitKnownCommand.Exists -eq $true) {
                 Write-Warning -Message ($localizedData.KnownGitCommandWithParameterWarning -f $gitKnownCommand.Command, $gitKnownCommand.Parameter);
             }
@@ -45,7 +60,7 @@ function Invoke-PhatGit {
         }
         
         ## Determine whether this is an ignored command before escaping all the parameters!
-        $isIgnoredCommand = TestPhatGitCommand -PhatGitCommands $global:PhatGitIgnoredCommands -Parameters $parameters;
+        $isIgnoredCommand = TestPhatGitCommand -PhatGitCommands $PhatGitIgnoredCommands -Parameters $parameters;
 
         ## Otherwise we're all good! Redirect output streams so they can be echoed nicely
         Write-Verbose $localizedData.RedirectingOutputStreams;
@@ -56,17 +71,9 @@ function Invoke-PhatGit {
                 $parameters[$i] = '"{0}"' -f $parameters[$i];
             }
         } #end for
-        $processStartInfo = New-object -TypeName 'System.Diagnostics.ProcessStartInfo';
-        $processStartInfo.CreateNoWindow = $false;
-        $processStartInfo.UseShellExecute = $false;
-        $processStartInfo.FileName = 'git.exe';
-        $processStartInfo.WorkingDirectory = (Get-Location -PSProvider FileSystem).Path;
-        $processStartInfo.Arguments = $parameters;
-        $processStartInfo.RedirectStandardOutput = $true;
-        $processStartInfo.RedirectStandardError = $true;
-        $process = [System.Diagnostics.Process]::Start($processStartInfo);
+        $process = StartGitProcess -Parameters $parameters;
         Write-Debug ($localizedData.StartedProcess -f $process.Id);
-
+        
         if ($isIgnoredCommand -or $Timeout -eq 0) {
             Write-Warning ($localizedData.DisablingProcessTimeoutWarning -f $parameters[0]);
             $process.WaitForExit();
@@ -102,6 +109,25 @@ function Invoke-PhatGit {
 } # end function Invoke-PhatGit
 
 #region Private Functions
+
+function StartGitProcess {
+    [CmdletBinding()]
+    [OutputType([System.Diagnostics.Process])]
+    param (
+        [Parameter()] [AllowNull()] $Parameters
+    )
+    process {
+        $processStartInfo = New-Object -TypeName 'System.Diagnostics.ProcessStartInfo';
+        $processStartInfo.CreateNoWindow = $false;
+        $processStartInfo.UseShellExecute = $false;
+        $processStartInfo.FileName = 'git.exe';
+        $processStartInfo.WorkingDirectory = (Get-Location -PSProvider FileSystem).Path;
+        $processStartInfo.Arguments = $Parameters;
+        $processStartInfo.RedirectStandardOutput = $true;
+        $processStartInfo.RedirectStandardError = $true;
+        return [System.Diagnostics.Process]::Start($processStartInfo);
+    } #end process
+} #end function StartGitProcess
 
 function TestPhatGitCommand {
     <#

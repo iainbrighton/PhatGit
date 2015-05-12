@@ -9,12 +9,13 @@ $knownGitCommands = @(
     @{ Command = 'commit'; Parameter = '-m'; Exists = $false; MessageId = 'MissingCommitMessageWarning'; }
 )
 $ignoredGitCommands = @(
-    @{ Command = 'push'; Parameter = ''; Exists = $false; }
-    @{ Command = 'pull'; Parameter = ''; Exists = $false; }
-    @{ Command = 'clone'; Parameter = ''; Exists = $false; }
+    @{ Command = 'push'; }
+    @{ Command = 'pull'; }
+    @{ Command = 'clone'; }
 )
-Set-Variable -Name PhatGitKnownCommands -Value $knownGitCommands -Scope Global -Visibility Public;
-Set-Variable -Name PhatGitIgnoredCommands -Value $ignoredGitCommands -Scope Global -Visibility Public;
+## Set the variables in the parent scope.
+Set-Variable -Name PhatGitKnownCommands -Value $knownGitCommands -Scope 1 -Visibility Public;
+Set-Variable -Name PhatGitIgnoredCommands -Value $ignoredGitCommands -Scope 1 -Visibility Public;
 
 New-Alias -Name Git -Value Invoke-PhatGit;
 Export-ModuleMember -Function Invoke-PhatGit -Alias Git;
