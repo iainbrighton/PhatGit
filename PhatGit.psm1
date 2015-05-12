@@ -19,11 +19,11 @@ function Invoke-PhatGit {
         [Parameter(ValueFromRemainingArguments = $true)] $parameters
     )
     process {
+        $originalCommandParameters = $parameters -Join ' ';
         if (-not ([string]::IsNullOrEmpty($MyInvocation.PSCommandPath)) -or -not ($Host.Name.Contains('ISE'))) {
                 ## We're not running interactively or not in the ISE so launch native
                 ## 'git' so that any existing tooling behaves as expected, e.g. posh-git etc.
-                $commandParameters = $parameters -Join ' ';
-                Invoke-Expression -Command ('Git.exe {0}' -f $commandParameters);
+                Invoke-Expression -Command ('Git.exe {0}' -f $originalCommandParameters);
         }
         else {
             ## Otherwise, redirect output streams so they can be echoed nicely
@@ -48,7 +48,7 @@ function Invoke-PhatGit {
             ## Launch the process and wait for up to 3 seconds
             $exitedCleanly = $process.WaitForExit(3000);
             if (-not($exitedCleanly)) {
-                Write-Warning ($localizedData.ProcessNotExitedCleanly -f ($parameters -join ' '));
+                Write-Warning ($localizedData.ProcessNotExitedCleanly -f $originalCommandParameters);
                 Write-Warning ($localizedData.StoppingProcess -f $process.Id);
                 Stop-Process -Id $process.Id -Force;
             }
