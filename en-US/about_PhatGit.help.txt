@@ -1,0 +1,60 @@
+TOPIC
+	PhatGit
+
+SYNOPSIS
+	PhatGit is a PowerShell module that wraps the native Git.exe functionality so
+    that it plays nicely within the PowerShell ISE.
+
+DESCRIPTION
+    The native Windows Git client does not play nicely in the Powershell ISE. The
+    Git client sends output to the console error stream, polluting the $Error
+    output and launching console text editors that will hand the Powershell ISE.
+    
+    PhatGit works by creating an alias for the Git command in the Powershell ISE
+    and replacing it with a new Invoke-PhatGit cmdlet. The Invoke-PhatGit function
+    captures and redirects interactive git.exe commands' standard and error output
+    streams. In addition, known problematic commands that hang the Powershell ISE
+    console are stopped from running.
+
+    If you try and load PhatGit in the standard Powershell console you will receive
+    a 'The name of the current Windows PowerShell host is: 'ConsoleHost'. The module
+    '...\PhatGit\phatgit.psd1' requires the following Windows PowerShell host:
+    'Windows PowerShell ISE Host' error.
+
+    PhatGit requires Powershell 3.0 and the Powershell ISE. PhatGit has been tested
+    with Posh-Git.
+    
+KNOWN ISSUES
+    PhatGit can only alias the Git command. If you run git.exe directly then the
+    Invoke-PhatGit command and functionality is bypassed.
+
+KNOWN COMMANDS
+    Since v1.2.0 PhatGit has supported the ability to ignore specific Git commands
+    or stop commands that are known to hang the Powershell ISE console from
+    running. The default command list is loaded into two global variables when
+    the module is imported: $PhatGitKnownCommands and $PhatGitIgnoredCommands.
+
+    By default, PhatGit will not interfere with the following commands (these
+    commands are in the $PhatGitIgnoredCommands global variable):
+
+        - 'git push'
+        - 'git pull'
+        - 'git clone'
+
+    PhatGit will also stop the following commands from running/hanging the
+    Powershell ISE.
+
+        - 'git commit' without the -m "Commit Message" parameter
+        - 'git commit' with the '--interactive' parameter 
+
+TIMEOUTS
+    PhatGit will give any Git.exe command up to 5 seconds to complete - except for
+    commands listed in the $PhatGitIgnoredCommands variable. Ignored commands will
+    never be terminated and may hang the console. If the Git process has not
+    completed in this timeframe it will be forcibly terminated.
+
+    You can override an individual Git command timeout value by specifying the -Timeout
+    parameter along with the Git command. The -Timeout value is specified in
+    milliseconds.
+
+SEE ALSO
